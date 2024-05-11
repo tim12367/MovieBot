@@ -2,22 +2,19 @@
 """
 爬取電影網站資料
 
-Created on Sat May 11 17:56:16 2024
+Created on 2024-05-11
 @author: Tim
 """
-
 from pyquery import PyQuery as pq
-import pandas as pd
 import time
 
-
-def getTimeStamp():
+def __getTimeStamp():
     local_time = time.localtime()  # 取得時間元組
     timeString = time.strftime("%Y-%m-%d-%H.%M.%S", local_time)  # 轉成想要的字串形式
     return timeString
 
 
-def parseMovieDetail(link):
+def __parseMovieDetail(link):
     movie_detail = {}
 
     query = pq(link, encoding='utf8')
@@ -42,38 +39,42 @@ def parseMovieDetail(link):
         print('上映日期:' + release_date)
     return movie_detail
 
+"""
+爬取電影資料
+"""
+def parseMovie() :
+    # 電影連結
+    new_movie = 'http://www.atmovies.com.tw/movie/next/0/'
+    root_domain = 'http://www.atmovies.com.tw'
 
-# 電影連結
-new_movie = 'http://www.atmovies.com.tw/movie/next/0/'
-root_domain = 'http://www.atmovies.com.tw'
+    query = pq(new_movie, encoding='utf8')  # 用UTF8開啟爬到的資料
 
-query = pq(new_movie, encoding='utf8')  # 用UTF8開啟爬到的資料
+    # check是否有資料
+    if not query:
+        raise ValueError(f'[{__getTimeStamp()}] 網頁抓取錯誤: {new_movie}')
 
-# check是否有資料
-if not query:
-    raise ValueError(f'[{getTimeStamp()}] 網頁抓取錯誤: {new_movie}')
+    # 爬取畫面上所有電影
+    index = 1  # 總共有幾部電影
+    links = []
+    for film_list_element in query('.filmListAll li'):
+        film_list = pq(film_list_element)  # 重新解析元素
+        title = film_list('.filmtitle').text()  # 電影標題
+        link = root_domain + film_list('a').attr('href')  # 電影詳情連結
+        links.append(link)
+        print(index)
+        print(title)
+        print(link)
+        index += 1
 
-# 爬取畫面上所有電影
-index = 1  # 總共有幾部電影
-links = []
-for film_list_element in query('.filmListAll li'):
-    film_list = pq(film_list_element)  # 重新解析元素
-    title = film_list('.filmtitle').text()  # 電影標題
-    link = root_domain + film_list('a').attr('href')  # 電影詳情連結
-    links.append(link)
-    print(index)
-    print(title)
-    print(link)
-    index += 1
+    # 爬取電影詳情頁
+    movie_details = []
+    for link in links:
+        try:
+            movie_detail = __parseMovieDetail(link)
+            movie_details.append(movie_detail)
+        except Exception as e:
+            print("爬取電影詳情頁發生錯誤!", e)
+        time.sleep(3)
 
-# 爬取電影詳情頁
-movie_details = []
-for link in links:
-    try:
-        movie_detail = parseMovieDetail(link)
-        movie_details.append(movie_detail)
-    except Exception as e:
-        print("爬取電影詳情頁發生錯誤!", e)
-    time.sleep(3)
-
-print(movie_details)
+    print(movie_details)
+    return movie_details
