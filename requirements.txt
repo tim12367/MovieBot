@@ -1,0 +1,3 @@
+cssselect @ file:///C:/b/abs_71gnjab7b0/croot/cssselect_1707339955530/work
+lxml @ file:///C:/b/abs_0byi7jajph/croot/lxml_1715289521201/work
+pyquery==1.4.3
